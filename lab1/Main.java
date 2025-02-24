@@ -2,7 +2,7 @@ import java.io.*;
 import java.util.*;
 
 class TrieNode{
-    HashMap<Character, TrieNode> children;  // 用HashMap来实现Trie树，用字符作为键mapping到下一层的节点
+    HashMap<Character, TrieNode> children;  // 用HashMap来存储下一层的孩子结点
     boolean isEnd;  // 是否可作为词尾
 
     public TrieNode() {
@@ -53,7 +53,6 @@ class Trie {
         }
         return res;
     }
-
 }
 
 public class Main {
