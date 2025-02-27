@@ -148,7 +148,7 @@ public class TimeTest {
         }
         // 结束计时
         long end = System.nanoTime();
-        System.out.println("Version 1: Time used: " + (end - start) / 1000000000.0 + "s");
+        System.out.println("Version 1 (ArrayList): Time used: " + (end - start) / 1000000000.0 + "s");
 
         // 将结果写入文件-用于验证
         try (BufferedWriter bw = new BufferedWriter(new FileWriter("timetest_v1.txt", false))){
@@ -197,7 +197,7 @@ public class TimeTest {
         }
         // 结束计时
         long end = System.nanoTime();
-        System.out.println("Version 3: Time used: " + (end - start) / 1000000000.0 + "s");
+        System.out.println("Version 2 (Sub-dicts): Time used: " + (end - start) / 1000000000.0 + "s");
 
         // 将结果写入文件-用于验证
         try (BufferedWriter bw = new BufferedWriter(new FileWriter("timetest_v2.txt", false))){
@@ -241,7 +241,7 @@ public class TimeTest {
         }
         // 结束计时
         long end = System.nanoTime();
-        System.out.println("Version 2: Time used: " + (end - start) / 1000000000.0 + "s");
+        System.out.println("Version 3 (Trie Tree): Time used: " + (end - start) / 1000000000.0 + "s");
 
         // 将结果写入文件-用于验证
         try (BufferedWriter bw = new BufferedWriter(new FileWriter("timetest_v3.txt", false))){
