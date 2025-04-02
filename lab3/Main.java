@@ -81,7 +81,7 @@ class InfixToPostfixConverter {
      * @param query 中缀表达式字符串
      * @return 中缀表达式字符串的列表
      */
-    public static List<String> queryToList(String query) {
+    public static List<String> tokenize(String query) {
         List<String> tokens = new ArrayList<>();
         StringBuilder currentToken = new StringBuilder();
         for (char ch : query.toCharArray()) {
@@ -111,9 +111,10 @@ class InfixToPostfixConverter {
      * 将中缀表达式转换为后缀表达式
      * @param query 中缀表达式（原始字符串形式）
      * @return 后缀表达式（列表形式）
+     * @MODIFIED 直接接收字符串形式的中缀表达式，把tokenize()方法封装到toPostfix()方法中
      */
     public static List<String> toPostfix(String query) {
-        List<String> tokens = queryToList(query);
+        List<String> tokens = tokenize(query);
         List<String> output = new ArrayList<>();
         Deque<String> stack = new ArrayDeque<>();
 
