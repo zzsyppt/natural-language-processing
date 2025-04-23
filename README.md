@@ -12,3 +12,4 @@ Natural Language Processing - 2025 Spring
 | [Lab1](lab1/) |   基于正向最大匹配算法的分词    |
 | [Lab2](lab2/) |    TF-IDF与词云生成     |
 | [Lab3](lab3/) |        倒排索引        |
+| [Lab4](lab4/) |   倒排索引与与相似词查询   |
