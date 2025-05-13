@@ -13,3 +13,4 @@ Natural Language Processing - 2025 Spring
 | [Lab2](lab2/) |    TF-IDF与词云生成     |
 | [Lab3](lab3/) |        倒排索引        |
 | [Lab4](lab4/) |   倒排索引与与相似词查询   |
+| [Lab5](lab5/) | 词典压缩 |
