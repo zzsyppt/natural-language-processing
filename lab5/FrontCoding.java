@@ -5,10 +5,10 @@ import java.util.*;
 
 public class FrontCoding {
 
-    /* ===== CLI 入口 ===== */
+    /* CLI */
     public static void main(String[] args) throws Exception {
         if (args.length < 3) {
-            System.err.println("用法:\n  encode <inTxt> <outBin> [k]\n  decode <inBin> <outTxt>");
+            System.err.println("Usage:\n  encode <inTxt> <outBin> [k]\n  decode <inBin> <outTxt>");
             return;
         }
         String mode = args[0];
@@ -17,7 +17,7 @@ public class FrontCoding {
             List<String> terms = readTerms(Paths.get(args[1]));
             byte[] bytes = compress(terms, k);
             Files.write(Paths.get(args[2]), bytes);
-            System.out.printf("压缩完成：原 %d 个词 → %d 字节，块大小 k=%d%n",
+            System.out.printf("压缩完成：原 %d 个词 压缩到 %d 字节，块大小 k=%d%n",
                     terms.size(), bytes.length, k);
         } else if ("decode".equalsIgnoreCase(mode)) {
             byte[] bytes = Files.readAllBytes(Paths.get(args[1]));
@@ -25,14 +25,20 @@ public class FrontCoding {
             Files.write(Paths.get(args[2]), String.join("\n", terms).getBytes(StandardCharsets.UTF_8));
             System.out.printf("解压完成：恢复 %d 个词%n", terms.size());
         } else {
-            System.err.println("未知模式：" + mode);
+            System.err.println("Usage:\n  encode <inTxt> <outBin> [k]\n  decode <inBin> <outTxt>");
         }
     }
 
-    /* ===== 压缩 ===== */
+    /*
+     * 压缩：
+     * 块内结构：[公共前缀的长度, 1B] [词1的长度，1B] [词1, ?B] [词2后缀的长度, 1B] [词2后缀, ?B]
+     *                                              [词3后缀的长度, 1B] [词3后缀, ?B]
+     *                                              [词4后缀的长度, 1B] [词3后缀, ?B]
+     * 文件结构： [k, 1B] [块1] [块2] [块3]... [块n]
+     */
     public static byte[] compress(List<String> terms, int k) throws IOException {
+        // 字节流，以字节数组的形式写入压缩结果
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-
         // 在文件开头写入块大小 k
         baos.write(k);
 
@@ -51,10 +57,10 @@ public class FrontCoding {
             }
 
             // 写入公共前缀的长度，只写一次
-            baos.write(lcp);
+            baos.write(lcp);    // 注，int会被自动转为byte
 
             // 写入第一个词的内容（完整存储）
-            byte[] firstBytes = terms.get(i).getBytes(StandardCharsets.UTF_8);
+            byte[] firstBytes = terms.get(i).getBytes(StandardCharsets.UTF_8);  // 编码为字节数组
             baos.write(firstBytes.length);  // 写入第一个词的长度
             baos.write(firstBytes);         // 写入第一个词
 
@@ -73,14 +79,10 @@ public class FrontCoding {
             // 更新索引
             i += blockSize;
         }
-
         return baos.toByteArray();
     }
 
-
-
-
-    /* ===== 解压（JDK 8 版） ===== */
+    /* 解压 */
     public static List<String> decompress(byte[] data) throws IOException {
         List<String> result = new ArrayList<>();
         DataInputStream in = new DataInputStream(new ByteArrayInputStream(data));
@@ -124,13 +126,8 @@ public class FrontCoding {
     }
 
 
-
-
-
-
-    /* ===== 工具函数 ===== */
+    /* 工具函数 */
     private static List<String> readTerms(Path path) throws IOException {
-        // JDK 8 没有 Files.readString，用 readAllBytes 替代
         String content = new String(Files.readAllBytes(path), StandardCharsets.UTF_8);
         return Arrays.asList(content.split("\\s+"));
     }

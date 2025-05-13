@@ -16,9 +16,10 @@ public class SuccinctTrie {
         System.out.printf("读取词典：%d 个词项\n", vocab.size());
 
         Louds louds = buildLouds(vocab);
-        System.out.printf("LOUDS 构建完成，位串长度=%d，标签数=%d\n", louds.bitLen, louds.labels.length);
+        System.out.printf("构建完成，位串长度=%d，标签数=%d\n", louds.bitLen, louds.labels.length);
         // 保存到文件
-        saveLouds(louds, "COMPRESSED.bin");
+        saveLouds(louds, "SuccinctTrie.bin");
+
         int[] ptrs = buildNodeIdPointers(vocab, louds);
         System.out.printf("节点指针构建完成，指针数=%d\n", ptrs.length);
 
@@ -27,12 +28,9 @@ public class SuccinctTrie {
         long ptrBytes = ptrs.length * 4;
 
         long totalBytes = bitsBytes + labelsBytes + ptrBytes;
-
         System.out.printf("bits=%,d bytes, labels=%,d bytes, ptrs=%,d bytes\n", bitsBytes, labelsBytes, ptrBytes);
-        System.out.printf("总共=%,d bytes (≈%.2f KB)\n", totalBytes, totalBytes / 1024.0);
-
-
-
+        System.out.printf("总共（不考虑词项指针）=%,d bytes (≈%.2f KB)\n", (bitsBytes + labelsBytes), (bitsBytes + labelsBytes) / 1024.0);
+        System.out.printf("总共（考虑词项指针）=%,d bytes (≈%.2f KB)\n", totalBytes, totalBytes / 1024.0);
 
         // 随机查询示例
         Random rand = new Random();
@@ -41,7 +39,7 @@ public class SuccinctTrie {
             String original = vocab.get(idx);
             int nodeId = ptrs[idx];
             String recovered = toTerm(louds, nodeId);
-            System.out.printf("原词：%-10s  → 查询结果：%s\n", original, recovered);
+            System.out.printf("[测试] 原词：%-10s  => 查询结果：%s\n", original, recovered);
         }
     }
 
@@ -102,11 +100,10 @@ public class SuccinctTrie {
             int nodeId = 0;
 
             for (char c : w.toCharArray()) {
-                //叫startbit更好些  根节点有特例
-                int childStart = (nodeId == 0) ? 0 : select0(l.bits, nodeId - 1) + 1;
+                int startBit = (nodeId == 0) ? 0 : select0(l.bits, nodeId) + 1;
                 int nextNodeId = -1;
 
-                for (int bitIdx = childStart; bitIdx < l.bitLen && l.bits.get(bitIdx); bitIdx++) {
+                for (int bitIdx = startBit; bitIdx < l.bitLen && l.bits.get(bitIdx); bitIdx++) {
                     int childNodeId = rank1(l.bits, bitIdx);
                     if (l.labels[childNodeId - 1] == c) {
                         nextNodeId = childNodeId;
@@ -129,7 +126,7 @@ public class SuccinctTrie {
 
         while (nodeId > 0) {
             sb.append((char) l.labels[nodeId - 1]);
-            nodeId = rank0(l.bits, select1(l.bits, nodeId - 1));
+            nodeId = rank0(l.bits, select1(l.bits, nodeId));
         }
 
         return sb.reverse().toString();
@@ -148,8 +145,8 @@ public class SuccinctTrie {
         int count = 0;
         for (int i = 0; i < bs.length(); i++) {
             if (bs.get(i)) {
-                if (count == k) return i;
                 count++;
+                if (count == k) return i;
             }
         }
         return -1;
@@ -159,8 +156,8 @@ public class SuccinctTrie {
         int count = 0;
         for (int i = 0; i < bs.length(); i++) {
             if (!bs.get(i)) {
-                if (count == k) return i;
                 count++;
+                if (count == k) return i;
             }
         }
         return -1;
@@ -179,7 +176,7 @@ public class SuccinctTrie {
             out.writeInt(l.labels.length);  // 记录labels长度
             out.write(l.labels);
         }
-        System.out.println("LOUDS 压缩词典已保存到 " + file);
+        System.out.println("压缩词典已保存到 " + file);
     }
 
 }
