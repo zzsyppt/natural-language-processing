@@ -80,25 +80,30 @@ public class Main {
 
         public void build(Corpus corpus, int r) {
             Map<String, List<Document>> posting = new HashMap<>();
-            // 建立倒排列表（词项 -> 包含该词项的文档列表）
+            // 倒排列表（词项 -> 包含该词项的文档列表）
             for (Document doc : corpus.documents) {
                 for (Map.Entry<String, Integer> entry : doc.termFreq.entrySet()) {
                     String term = entry.getKey();
                     posting.computeIfAbsent(term, k -> new ArrayList<>()).add(doc);
                 }
             }
-            // 构建胜者表：每个词项保留 TF 值最高的前 r 个文档
+            // 胜者表：每个词项的TF值最高的前r个文档
             for (final String term : posting.keySet()) {
+                // 优先级队列模拟小顶堆
+                /*
+                    每遇到一个文档就尝试加入堆中，如果堆的大小超过了r，
+                    就用`heap.poll()`把tf最小的堆顶弹出
+                 */
                 PriorityQueue<Document> heap = new PriorityQueue<>(new Comparator<Document>() {
                     public int compare(Document a, Document b) {
-                        return Integer.compare(a.termFreq.get(term), b.termFreq.get(term)); // 小顶堆，TF小的在上
+                        return Integer.compare(a.termFreq.get(term), b.termFreq.get(term));
                     }
                 });
                 // 仅保留 TF 最大的前 r 个文档
                 for (Document doc : posting.get(term)) {
                     heap.offer(doc);
                     if (heap.size() > r) {
-                        heap.poll(); // 弹出 TF 最小的
+                        heap.poll();
                     }
                 }
                 // 结果从大到小排序
@@ -121,7 +126,6 @@ public class Main {
         QueryVector(String text, Corpus corpus,
                     Set<String> stop, JiebaSegmenter seg) {
 
-            /* 1️⃣ 分词+去停用词 → 词频 */
             Map<String,Integer> tf = new HashMap<>();
             for (String tok : seg.sentenceProcess(text)) {
                 if (!stop.contains(tok) && !tok.trim().isEmpty()) {
@@ -129,7 +133,6 @@ public class Main {
                 }
             }
 
-            /* 2️⃣ TF-IDF 权重 */
             int N = corpus.getDocuments().size();
             Map<String,Integer> dfMap = corpus.getDfMap();
             double sumSq = 0.0;
@@ -163,7 +166,7 @@ public class Main {
         }
 
         public List<Map.Entry<Integer, Double>> query(String queryText, int k) {
-            // 构建统一的查询向量
+            // 构建查询向量
             QueryVector qv = new QueryVector(queryText, corpus, stopWords, segmenter);
 
             // 胜者表候选集：包含任意一个查询词的 top-r 文档
@@ -215,7 +218,7 @@ public class Main {
         }
 
         public List<Map.Entry<Integer, Double>> exactQuery(String query, int k) {
-            // 使用统一的查询向量构造器
+            // 构造查询向量
             QueryVector qv = new QueryVector(query, corpus, stopWords, segmenter);
 
             // 候选文档：至少包含一个查询词的文档
